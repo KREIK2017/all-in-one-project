@@ -1,0 +1,290 @@
+.ticket-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ticket-table th {
+  text-align: left;
+  padding: 16px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.9rem;
+}
+
+.ticket-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-dark);
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+}
+
+.ticket-table tr:hover td {
+  background-color: var(--bg-panel-hover);
+  cursor: pointer;
+}
+
+.ticket-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Status Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-new {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--status-new);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-progress {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: var(--status-progress);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-completed {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-closed {
+  background-color: rgba(107, 114, 128, 0.15);
+  color: var(--status-closed);
+  border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+/* Priority Text */
+.priority-normal {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+.priority-high {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Activity Feed */
+.activity-feed {
+  position: relative;
+  padding-left: 20px;
+}
+
+.activity-feed::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 20px;
+  width: 2px;
+  background-color: var(--border-light);
+  z-index: 0;
+}
+
+.feed-item {
+  position: relative;
+  padding: 16px 0 16px 40px;
+  z-index: 1;
+}
+
+.feed-icon {
+  position: absolute;
+  left: -20px;
+  top: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-panel);
+  border: 2px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.feed-icon.user-avatar {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+
+.feed-icon.status-update {
+  width: 30px;
+  height: 30px;
+  left: -15px;
+  top: 20px;
+  color: var(--text-muted);
+}
+
+.feed-icon.time-log {
+  width: 30px;
+  height: 30px;
+  left: -15px;
+  top: 20px;
+  background-color: rgba(142, 45, 226, 0.2);
+  color: var(--accent-purple);
+  border-color: rgba(142, 45, 226, 0.5);
+}
+
+.feed-content {
+  background-color: var(--bg-panel-hover);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.feed-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.feed-author {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.feed-time {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.feed-text {
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--accent-cyan);
+  color: #000;
+}
+
+.btn-primary:hover {
+  background: #fff;
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-component);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Dashboard Chart --- */
+.chart-container {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 2%;
+  padding-bottom: 20px;
+  position: relative;
+  min-height: 280px; /* Fixed height for the chart area */
+  margin-top: 20px;
+}
+
+.chart-bar-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 10;
+}
+
+.chart-bar {
+  width: 100%;
+  max-width: 45px;
+  background: linear-gradient(to top, #8e2de2, #00f2fe);
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
+  transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  min-width: 25px;
+}
+
+.chart-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
+  border-radius: 4px 4px 0 0;
+}
+
+.chart-tooltip {
+  background: #101216;
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #00f2fe;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  white-space: nowrap;
+  animation: fadeIn 0.5s ease;
+}
+
+.chart-label {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+@keyframes barGrow {
+  from { height: 0; }
+  to { height: var(--final-height); }
+}
+
+.spin {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

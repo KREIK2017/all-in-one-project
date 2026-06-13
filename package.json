@@ -1,0 +1,16 @@
+{
+  "name": "aio-dashboard",
+  "version": "1.0.0",
+  "description": "All-in-One IT Agency Dashboard",
+  "scripts": {
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v",
+    "db:logs": "docker compose logs -f db",
+    "dev": "npm run db:up && concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "start": "npm run db:up && concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,magenta\" \"npm start --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

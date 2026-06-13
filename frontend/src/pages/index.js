@@ -1,0 +1,14 @@
+export { DashboardPage } from './DashboardPage';
+export { TicketsListPage } from './TicketsListPage';
+export { TicketDetailPage } from './TicketDetailPage';
+export { NewTicketPage } from './NewTicketPage';
+export { ProjectsPage } from './ProjectsPage';
+export { ReportsPage } from './ReportsPage';
+export { NewProjectPage } from './NewProjectPage';
+export { LoginPage } from './LoginPage';
+export { RegisterPage } from './RegisterPage';
+export { ProfilePage } from './ProfilePage';
+export { SettingsPage } from './SettingsPage';
+export { ActivityPage } from './ActivityPage';
+export { UsersPage } from './UsersPage';
+export { CompleteProfilePage } from './CompleteProfilePage';

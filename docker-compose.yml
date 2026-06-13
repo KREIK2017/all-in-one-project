@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: aio_db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: aio_dashboard
+      MARIADB_USER: aio
+      MARIADB_PASSWORD: aio_password
+      MARIADB_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      # Виконується ОДИН раз при першій ініціалізації порожнього тому:
+      - ./backend/database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  # Веб-інтерфейс для перегляду БД (заміна phpMyAdmin) → http://localhost:8080
+  adminer:
+    image: adminer:latest
+    container_name: aio_adminer
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+
+volumes:
+  db_data:
