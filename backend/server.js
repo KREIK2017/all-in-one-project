@@ -12,6 +12,8 @@ const statsRouter = require('./routes/stats');
 const usersRouter = require('./routes/users');
 const notificationsRouter = require('./routes/notifications');
 
+const errorHandler = require('./middleware/errorHandler');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -45,6 +47,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
+app.use(errorHandler);
 // Start server
 app.listen(PORT, () => {
   console.log(`\n🚀 AIO Dashboard Server running on http://localhost:${PORT}`);
