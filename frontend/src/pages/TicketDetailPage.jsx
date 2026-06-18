@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, ArrowRight, User, FileText, AtSign, Bug, Sparkles, CheckCircle2, Headphones } from 'lucide-react';
-import { getTicket, addComment, updateTicket, startTimer, addManualTime, getProjects, getUsers } from '../services/api';
+import { getTicket, addComment, updateTicket, deleteTicket, startTimer, addManualTime, getProjects, getUsers } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export const TicketDetailPage = () => {
@@ -93,6 +93,16 @@ export const TicketDetailPage = () => {
       fetchTicket();
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteTicket = async () => {
+    if (!window.confirm('Видалити цей тікет? Його коментарі, активність та залогований час буде видалено без можливості відновлення.')) return;
+    try {
+      await deleteTicket(id);
+      navigate('/tickets');
+    } catch (err) {
+      alert('Помилка при видаленні: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -298,19 +308,29 @@ export const TicketDetailPage = () => {
                 )}
               </div>
             </div>
-            <button 
-              className="btn btn-secondary" 
-              style={{ height: 'fit-content', padding: '6px 16px', fontSize: '0.85rem' }} 
-              onClick={() => {
-                if (isEditing) {
-                  setEditSubject(ticket.subject || ticket.SUBJECT || '');
-                  setEditBody(ticket.body || '');
-                }
-                setIsEditing(!isEditing);
-              }}
-            >
-              {isEditing ? 'Cancel Edit' : 'Edit Ticket'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px', height: 'fit-content' }}>
+              <button
+                className="btn btn-secondary"
+                style={{ padding: '6px 16px', fontSize: '0.85rem' }}
+                onClick={() => {
+                  if (isEditing) {
+                    setEditSubject(ticket.subject || ticket.SUBJECT || '');
+                    setEditBody(ticket.body || '');
+                  }
+                  setIsEditing(!isEditing);
+                }}
+              >
+                {isEditing ? 'Cancel Edit' : 'Edit Ticket'}
+              </button>
+              <button
+                className="btn btn-secondary"
+                style={{ padding: '6px 16px', fontSize: '0.85rem', borderColor: 'rgba(239,68,68,0.4)', color: '#ef4444' }}
+                onClick={handleDeleteTicket}
+                title="Delete Ticket"
+              >
+                Delete
+              </button>
+            </div>
           </div>
 
           <div style={{ padding: '32px 24px', minHeight: '400px' }}>

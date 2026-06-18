@@ -60,7 +60,11 @@ export const ProjectsPage = () => {
                 <tr><td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '48px' }}>No projects yet.</td></tr>
               ) : (
                 projects.map(proj => (
-                  <tr key={proj.id}>
+                  <tr
+                    key={proj.id}
+                    onClick={() => navigate(`/tickets?projectId=${proj.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: proj.color || '#6366f1' }} />
@@ -76,14 +80,14 @@ export const ProjectsPage = () => {
                         <button
                           className="btn-icon active-cyan"
                           title="View Tickets"
-                          onClick={() => navigate(`/tickets?projectId=${proj.id}`)}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/tickets?projectId=${proj.id}`); }}
                         >
                           <Ticket size={18} />
                         </button>
                         <button
                           className="btn-icon delete"
                           title="Delete"
-                          onClick={() => handleDelete(proj.id)}
+                          onClick={(e) => { e.stopPropagation(); handleDelete(proj.id); }}
                         >
                           <Trash2 size={18} />
                         </button>

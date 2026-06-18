@@ -40,52 +40,58 @@ all-in-one project/
 │       │   ├── index.css             → CSS змінні, glassmorphism, анімації
 │       │   └── components.css        → Таблиці, бейджі, activity feed, кнопки
 │       └── App.jsx                    → Router (react-router-dom)
-└── backend/                           → (в процесі, Node.js)
+└── backend/                           → ✅ Node.js + TypeScript + Sequelize
 ```
 
 **Готові сторінки:**
 | Сторінка | Шлях | Статус |
 |---|---|---|
-| Dashboard | `/dashboard` | ✅ Мокові дані, графік |
+| Dashboard | `/dashboard` | ✅ Реальні дані з `/api/stats`, графік |
 | Tickets List | `/tickets` | ✅ Таблиця з бейджами статусів |
 | New Ticket | `/tickets/new` | ✅ Форма зі всіма полями |
 | Ticket Detail | `/tickets/:id` | ✅ Activity Feed (коментарі + час + статуси) |
 | Projects | `/projects` | ✅ Список проектів |
 | Reports | `/reports` | ✅ Billing Time таблиця по тижнях |
 
-**Глобальний таймер:** є в `TopBar`, але поки без збереження і прив'язки до проекту.
+**Глобальний таймер:** у `TopBar`, стан зберігається на сервері (`active_timers`), прив'язаний до проекту/тікета.
 
 ---
 
-## Що потрібно зробити (Фаза 2 — Backend)
+## Зроблено (Фаза 2 — Backend) ✅
 
-**Стек:** Node.js (Express) + MySQL (через XAMPP / phpMyAdmin)
+**Стек:** Node.js + Express 5 + **TypeScript** + **Sequelize** (ORM) → MariaDB у Docker
 
-**База даних:** `aio_dashboard`
-- `users` — колеги компанії
-- `projects` — проекти з клієнтами
-- `tickets` — тікети з полями status/priority/assignee
-- `activity` — стрічка активності (коментарі, зміни статусів, логи часу)
-- `time_entries` — записи часу (старт, кінець, хвилини, проект, тікет)
-- `active_timers` — поточний стан таймера на сервері
+**Архітектура — шарова** (кожен запит: `route → controller → service → repository → БД`):
+```
+backend/
+├── routes/         → лише маршрути + middleware (auth, multer)
+├── controllers/    → req ↔ res, без логіки
+├── services/       → бізнес-логіка, транзакції
+├── repositories/   → доступ до БД через Sequelize (моделі + sequelize.query для JOIN/агрегатів)
+├── models/         → 7 Sequelize-моделей під наявну схему (без auto-sync)
+├── config/         → env, sequelize (інстанс підключення)
+├── middleware/     → auth (JWT), errorHandler (глобальний)
+└── utils/          → AppError, asyncHandler, withTransaction
+```
 
-**SQL-схема:** вже готова у файлі [backend/database/schema.sql](file:///d:/%D0%A0%D0%B0%D0%B1%D0%BE%D1%87%D0%B8%D0%B9%20%D1%81%D1%82%D0%BE%D0%BB/projeckts/Antigravity/all-in-one%20project/backend/database/schema.sql)
+**База даних:** `aio_dashboard` (MariaDB)
+- `users` — колеги (роль admin/user, статус, аватар, тема/шрифт, handle)
+- `projects` — проекти з клієнтами (`is_active` — м'яке видалення)
+- `tickets` — тікети (status/priority/ticket_type/assignee/project)
+- `activity` — стрічка активності (comment, status_change, time_log, …)
+- `time_entries` — записи часу (білінг)
+- `active_timers` — стан активного таймера на сервері
+- `notifications` — сповіщення (@mention, призначення)
 
-**Пріоритет 1 — Таймер v2.0:**
-- Прив'язати до проекту (dropdown в TopBar)
-- Зберігати стан на сервері (не скидається при закритті браузера)
-- При Stop → зберігати в `time_entries`
-- Ручне редагування часу (з логуванням хто/коли змінив)
-- Дані відображаються в Billing Time в реальному часі
+**Схема/дані:** ініціалізуються з [backend/database/init/01-dump.sql](backend/database/init/01-dump.sql) при першому запуску порожнього Docker-тому.
 
-**Пріоритет 2 — Тікети + API:**
-- REST API для CRUD операцій з тікетами
-- Підключити форму [NewTicketPage](file:///d:/%D0%A0%D0%B0%D0%B1%D0%BE%D1%87%D0%B8%D0%B9%20%D1%81%D1%82%D0%BE%D0%BB/projeckts/Antigravity/all-in-one%20project/frontend/src/pages/NewTicketPage.jsx#4-84) до реального API
-- Зберігати коментарі та зміни статусів в `activity`
-
-**Пріоритет 3 — Авторизація:**
-- JWT токени (login/logout)
-- Захищені API роути
+**Готові можливості:**
+- **Тікети:** CRUD + видалення (з каскадом активності/часу); стрічка активності; @mentions → сповіщення + email
+- **Таймер v2:** серверний стан, прив'язка до проекту/тікета, тривалість рахується в БД (`TIMESTAMPDIFF` — без багів таймзон), ручний ввід часу, редагування — усе атомарно (транзакції)
+- **Billing Time:** агрегація `time_entries` по проектах/днях
+- **Видалення проекту:** ховає проект + видаляє його тікети, **зберігаючи білінг**
+- **Авторизація:** JWT (register/login/me), захищені роути, ролі admin/user
+- **Профіль:** редагування, аватар (upload/delete), статус, зміна пароля, унікальність handle/email
 
 ---
 

@@ -28,6 +28,7 @@ export const getTickets = (params) => api.get('/tickets', { params }).then(r => 
 export const getTicket = (id) => api.get(`/tickets/${id}`).then(r => r.data);
 export const createTicket = (data) => api.post('/tickets', data).then(r => r.data);
 export const updateTicket = (id, data) => api.patch(`/tickets/${id}`, data).then(r => r.data);
+export const deleteTicket = (id) => api.delete(`/tickets/${id}`).then(r => r.data);
 export const addComment = (ticketId, data) => api.post(`/tickets/${ticketId}/comments`, data).then(r => r.data);
 
 // --- Time Tracking ---

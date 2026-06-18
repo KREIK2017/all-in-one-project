@@ -55,7 +55,7 @@ CREATE TABLE `activity` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ticket_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `type` enum('status_change','priority_change','reassign','subject_change','type_change','comment','ticket_updated') NOT NULL,
+  `type` enum('status_change','priority_change','reassign','subject_change','type_change','comment','ticket_updated','time_log') NOT NULL,
   `content` text DEFAULT NULL,
   `old_value` varchar(100) DEFAULT NULL,
   `new_value` varchar(100) DEFAULT NULL,
