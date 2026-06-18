@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import path from 'path';
 import dotenv from 'dotenv';
 import sequelize from './config/sequelize';
@@ -20,7 +21,8 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3001;
 
 // Middleware
-app.use(cors()); // Allow all origins for local development
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } })); // дозволяємо віддавати аватари на фронт
+app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 

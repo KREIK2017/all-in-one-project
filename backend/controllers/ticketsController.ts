@@ -14,17 +14,19 @@ export const getOne = asyncHandler(async (req, res) => {
 });
 
 export const create = asyncHandler(async (req, res) => {
-  const id = await ticketsService.create(req.body);
+  // created_by завжди з токена, а не з тіла
+  const id = await ticketsService.create({ ...req.body, created_by: req.user!.id });
   res.status(201).json({ id });
 });
 
 export const addComment = asyncHandler(async (req, res) => {
-  await ticketsService.addComment(String(req.params.id), { userId: req.body.user_id, content: req.body.content });
+  await ticketsService.addComment(String(req.params.id), { userId: req.user!.id, content: req.body.content });
   res.status(201).json({ success: true });
 });
 
 export const update = asyncHandler(async (req, res) => {
-  await ticketsService.update(String(req.params.id), req.body);
+  // автор зміни (для activity) — з токена
+  await ticketsService.update(String(req.params.id), { ...req.body, user_id: req.user!.id });
   res.json({ success: true });
 });
 
