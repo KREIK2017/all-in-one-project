@@ -1,5 +1,7 @@
 # AIO Dashboard
 
+[![CI](https://github.com/KREIK2017/all-in-one-project/actions/workflows/ci.yml/badge.svg)](https://github.com/KREIK2017/all-in-one-project/actions/workflows/ci.yml)
+
 Internal tool for IT companies that combines ticket management, time tracking, and billing reporting in a single interface.
 
 ## What it does

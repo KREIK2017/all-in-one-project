@@ -176,7 +176,7 @@ export const SettingsPage = () => {
         setUser({ ...user, avatar_url: null });
         setMessage({ type: 'success', text: 'Photo deleted' });
       }
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Deletion failed' });
     } finally {
       setLoading(false);
