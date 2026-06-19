@@ -14,6 +14,8 @@ import statsRouter from './routes/stats';
 import usersRouter from './routes/users';
 import notificationsRouter from './routes/notifications';
 import errorHandler from './middleware/errorHandler';
+import { migrator } from './db/umzug';
+import { seed } from './db/seed';
 
 dotenv.config();
 
@@ -53,8 +55,17 @@ app.use((_req, res) => {
 // Глобальний обробник помилок — останнім
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`\n🚀 AIO Dashboard Server running on http://localhost:${PORT}`);
-  console.log(`📊 DB: ${process.env.DB_NAME}@${process.env.DB_HOST}`);
+// Старт: застосувати міграції (схема в коді) -> засіяти демо-дані, якщо порожньо -> слухати
+async function start() {
+  await migrator.up(); // застосовує лише pending-міграції (вже застосовані пропускає)
+  await seed(); // idempotent: сіє лише якщо users порожні
+  app.listen(PORT, () => {
+    console.log(`\n🚀 AIO Dashboard Server running on http://localhost:${PORT}`);
+    console.log(`📊 DB: ${process.env.DB_NAME}@${process.env.DB_HOST}`);
+  });
+}
+
+start().catch((err) => {
+  console.error('❌ Startup failed:', err);
+  process.exit(1);
 });

@@ -55,13 +55,22 @@ npm run dev
 
 ## Database
 
-MariaDB runs in Docker. Schema and seed data are initialized from `backend/database/init/01-dump.sql` on first run.
+MariaDB runs in Docker. The schema is defined as **Sequelize (umzug) migrations** and applied automatically when the backend starts. On an empty database it is also seeded with demo data.
+
+**Demo login (fresh DB):** `admin@demo.com` / `demo1234`
 
 ```bash
+# DB container (run from repo root)
 npm run db:up      # start DB
 npm run db:down    # stop DB
-npm run db:reset   # wipe volume and restart
+npm run db:reset   # wipe volume and restart (schema is rebuilt by migrations on next start)
 npm run db:logs    # view DB logs
+
+# Migrations & seed (run from backend/)
+npm run db:migrate          # apply pending migrations
+npm run db:migrate:undo     # roll back the last migration
+npm run db:migrate:status   # list pending migrations
+npm run db:seed             # insert demo data (only if DB is empty)
 ```
 
 **Tables:** `users`, `projects`, `tickets`, `activity`, `time_entries`, `active_timers`, `notifications`
@@ -88,10 +97,13 @@ all-in-one-project/
     ├── controllers/
     ├── services/
     ├── repositories/
-    ├── models/
+    ├── models/         → Sequelize models
+    ├── migrations/     → umzug schema migrations
+    ├── db/             → sequelize instance, migrator, seed
     ├── config/
     ├── middleware/
-    └── utils/
+    ├── utils/
+    └── tests/          → Vitest unit tests
 ```
 
 ## Features
