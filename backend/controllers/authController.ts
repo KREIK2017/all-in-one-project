@@ -13,3 +13,8 @@ export const me = asyncHandler(async (req, res) => {
   const token = req.headers['authorization']?.split(' ')[1];
   res.json(await authService.me(token));
 });
+
+export const logout = asyncHandler(async (req, res) => {
+  await authService.logout(req.user!.id);
+  res.json({ success: true });
+});

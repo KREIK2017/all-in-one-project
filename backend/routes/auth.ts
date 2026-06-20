@@ -18,6 +18,7 @@ const authLimiter = rateLimit({
 router.post('/register', authLimiter, authController.register);
 router.post('/login', authLimiter, authController.login);
 router.get('/me', authController.me);
+router.post('/logout', auth, authController.logout);
 
 // Користувачі (керування) — делегують у usersController
 router.get('/users', usersController.list);

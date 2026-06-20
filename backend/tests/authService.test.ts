@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 vi.mock('../repositories/usersRepository', () => ({
-  default: { findByEmail: vi.fn(), createUser: vi.fn(), findProfileById: vi.fn() },
+  default: { findByEmail: vi.fn(), createUser: vi.fn(), findProfileById: vi.fn(), updateStatus: vi.fn() },
 }));
 vi.mock('bcryptjs', () => ({ default: { hash: vi.fn(), compare: vi.fn() } }));
 vi.mock('jsonwebtoken', () => ({ default: { sign: vi.fn(() => 'tok'), verify: vi.fn() } }));

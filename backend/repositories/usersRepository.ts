@@ -44,7 +44,7 @@ export default {
 
   findProfileById(id: number) {
     return User.findByPk(id, {
-      attributes: ['id', 'name', 'email', 'role', 'handle', 'avatar_color', 'avatar_url', 'theme', 'font'],
+      attributes: ['id', 'name', 'email', 'role', 'handle', 'avatar_color', 'avatar_url', 'theme', 'font', 'status'],
       raw: true,
     }) as any;
   },

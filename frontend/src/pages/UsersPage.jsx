@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Users as UsersIcon, Shield, Trash2, Mail, Calendar, UserCheck, ShieldAlert, Circle, Moon, MinusCircle, EyeOff } from 'lucide-react';
 import { getUsers, updateUserRole, deleteUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { usePresence } from '../context/PresenceContext';
 
 export const UsersPage = () => {
   const { user: currentUser } = useAuth();
+  const { statuses } = usePresence();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -98,14 +100,14 @@ export const UsersPage = () => {
                       </div>
                       <div style={{
                         position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, borderRadius: '50%',
-                        background: u.status === 'online' ? '#10b981' : u.status === 'away' ? '#f59e0b' : u.status === 'dnd' ? '#ef4444' : '#6b7280',
+                        background: (statuses[u.id] || u.status) === 'online' ? '#10b981' : (statuses[u.id] || u.status) === 'away' ? '#f59e0b' : (statuses[u.id] || u.status) === 'dnd' ? '#ef4444' : '#6b7280',
                         border: '2px solid var(--bg-panel)'
                       }}></div>
                     </div>
                     <div>
                       <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{u.name} {u.id === currentUser?.id && <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', marginLeft: '4px' }}>(You)</span>}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        {u.status === 'online' ? 'Online' : u.status === 'away' ? 'Away' : u.status === 'dnd' ? 'Do not disturb' : 'Offline'}
+                        {(statuses[u.id] || u.status) === 'online' ? 'Online' : (statuses[u.id] || u.status) === 'away' ? 'Away' : (statuses[u.id] || u.status) === 'dnd' ? 'Do not disturb' : 'Offline'}
                       </div>
                     </div>
                   </div>

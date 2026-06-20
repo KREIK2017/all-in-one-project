@@ -1,9 +1,11 @@
 import express from 'express';
+import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import dotenv from 'dotenv';
 import sequelize from './config/sequelize';
+import { initSocket } from './socket';
 
 // Routes
 import projectsRouter from './routes/projects';
@@ -59,7 +61,9 @@ app.use(errorHandler);
 async function start() {
   await migrator.up(); // застосовує лише pending-міграції (вже застосовані пропускає)
   await seed(); // idempotent: сіє лише якщо users порожні
-  app.listen(PORT, () => {
+  const httpServer = http.createServer(app);
+  initSocket(httpServer); // Socket.IO на тому ж сервері (presence у реальному часі)
+  httpServer.listen(PORT, () => {
     console.log(`\n🚀 AIO Dashboard Server running on http://localhost:${PORT}`);
     console.log(`📊 DB: ${process.env.DB_NAME}@${process.env.DB_HOST}`);
   });

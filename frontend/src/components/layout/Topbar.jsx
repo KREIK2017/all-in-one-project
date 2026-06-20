@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Square, Search, Bell, ChevronDown, Settings, LogOut, User, History, Circle, Moon, MinusCircle, EyeOff, Check, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getProjects, startTimer, stopTimer, getActiveTimer, updateUserStatus, getUnreadCount, getNotifications, markAsRead, markAllAsRead } from '../../services/api';
+import { getProjects, startTimer, stopTimer, getActiveTimer, getUnreadCount, getNotifications, markAsRead, markAllAsRead } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { usePresence } from '../../context/PresenceContext';
 
 export const Topbar = () => {
   const navigate = useNavigate();
   const { user, setUser, logout } = useAuth();
+  const { statuses, setStatus } = usePresence();
+  const myStatus = statuses[user?.id] ?? user?.status;
   const [isRunning, setIsRunning] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [projects, setProjects] = useState([]);
@@ -331,9 +334,9 @@ export const Topbar = () => {
                   width: 12, 
                   height: 12, 
                   borderRadius: '50%', 
-                  background: user?.status === 'online' ? '#10b981' : user?.status === 'away' ? '#f59e0b' : user?.status === 'dnd' ? '#ef4444' : '#6b7280',
+                  background: myStatus === 'online' ? '#10b981' : myStatus === 'away' ? '#f59e0b' : myStatus === 'dnd' ? '#ef4444' : '#6b7280',
                   border: '2px solid var(--bg-panel)',
-                  boxShadow: user?.status === 'online' ? '0 0 6px #10b981' : 'none'
+                  boxShadow: myStatus === 'online' ? '0 0 6px #10b981' : 'none'
                 }}></div>
               </div>
               <ChevronDown size={14} style={{ transform: showUserMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
@@ -368,22 +371,16 @@ export const Topbar = () => {
                       <button 
                         key={st.id}
                         className="nav-item"
-                        style={{ padding: '8px 10px', borderRadius: '8px', fontSize: '0.85rem', background: user?.status === st.id ? 'rgba(255,255,255,0.08)' : 'none', width: '100%', border: 'none', cursor: 'pointer', color: user?.status === st.id ? 'var(--text-main)' : 'var(--text-dim)', marginBottom: '2px' }}
-                        onClick={async () => {
-                          try {
-                            const res = await updateUserStatus(st.id);
-                            if (res.success) {
-                              setUser({ ...user, status: st.id });
-                            }
-                          } catch (err) {
-                            console.error('Failed to update status:', err);
-                          }
+                        style={{ padding: '8px 10px', borderRadius: '8px', fontSize: '0.85rem', background: myStatus === st.id ? 'rgba(255,255,255,0.08)' : 'none', width: '100%', border: 'none', cursor: 'pointer', color: myStatus === st.id ? 'var(--text-main)' : 'var(--text-dim)', marginBottom: '2px' }}
+                        onClick={() => {
+                          setStatus(st.id); // через сокет: сервер збереже + розішле всім
+                          setUser({ ...user, status: st.id });
                         }}
                       >
                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
                             {st.icon} {st.label}
                          </div>
-                         {user?.status === st.id && <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-cyan)', boxShadow: '0 0 8px var(--accent-cyan)' }}></div>}
+                         {myStatus === st.id && <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-cyan)', boxShadow: '0 0 8px var(--accent-cyan)' }}></div>}
                       </button>
                     ))}
                   </div>

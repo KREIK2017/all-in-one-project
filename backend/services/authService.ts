@@ -20,6 +20,7 @@ function publicUser(u: Record<string, any>) {
     avatar_url: u.avatar_url ?? null,
     theme: u.theme || 'dark',
     font: u.font || 'Inter',
+    status: u.status || 'online',
   };
 }
 
@@ -40,7 +41,16 @@ export default {
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) throw new AppError(400, 'Невірний email або пароль');
 
+    // Presence: при вході — online
+    await usersRepo.updateStatus(user.id, 'online');
+    user.status = 'online';
+
     return { token: signToken(user.id), user: publicUser(user) };
+  },
+
+  // Presence: при виході — offline
+  async logout(userId: number) {
+    await usersRepo.updateStatus(userId, 'offline');
   },
 
   async me(token?: string) {

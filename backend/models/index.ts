@@ -12,7 +12,7 @@ export const User = sequelize.define(
     password_hash: { type: DataTypes.STRING(255), allowNull: false },
     avatar_color: { type: DataTypes.STRING(20), defaultValue: '#00f2fe' },
     avatar_url: { type: DataTypes.STRING(255), allowNull: true },
-    status: { type: DataTypes.ENUM('online', 'away', 'dnd', 'invisible'), defaultValue: 'online' },
+    status: { type: DataTypes.ENUM('online', 'away', 'dnd', 'invisible', 'offline'), defaultValue: 'online' },
     role: { type: DataTypes.ENUM('admin', 'user'), defaultValue: 'user' },
     handle: { type: DataTypes.STRING(50), allowNull: true, unique: true },
     theme: { type: DataTypes.STRING(20), defaultValue: 'dark' },

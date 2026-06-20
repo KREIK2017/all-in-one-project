@@ -8,6 +8,7 @@ import {
 } from './pages';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { PresenceProvider } from './context/PresenceContext';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -29,6 +30,7 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
+        <PresenceProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
@@ -52,6 +54,7 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+        </PresenceProvider>
       </ThemeProvider>
     </AuthProvider>
   );

@@ -43,7 +43,12 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout'); // ставимо offline на сервері
+    } catch {
+      // навіть якщо запит не вдався — все одно виходимо локально
+    }
     localStorage.removeItem('token');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
