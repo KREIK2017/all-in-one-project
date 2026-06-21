@@ -106,13 +106,14 @@ export default {
 
     // assignee_id / project_id йдуть БЕЗ COALESCE (їх можна обнулити),
     // тому undefined/'' приводимо до null, щоб mysql2 не впав і щоб "зняти" значення:
+    // undefined = поле не передали -> лишаємо поточне; '' = явно «зняти» -> null
     const fields = {
       status: data.status ?? null,
       priority: data.priority ?? null,
-      assignee_id: data.assignee_id === '' || data.assignee_id === undefined ? null : data.assignee_id,
+      assignee_id: data.assignee_id === undefined ? current.assignee_id : data.assignee_id === '' ? null : data.assignee_id,
       subject: data.subject ?? null,
       body: data.body ?? null,
-      project_id: data.project_id === '' || data.project_id === undefined ? null : data.project_id,
+      project_id: data.project_id === undefined ? current.project_id : data.project_id === '' ? null : data.project_id,
       ticket_type: data.ticket_type ?? null,
     };
     await repo.update(id, fields);

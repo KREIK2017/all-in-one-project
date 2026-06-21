@@ -62,4 +62,9 @@ export const getUnreadCount = () => api.get('/notifications/unread-count').then(
 export const markAsRead = (id) => api.patch(`/notifications/${id}/read`).then(r => r.data);
 export const markAllAsRead = () => api.patch('/notifications/read-all').then(r => r.data);
 
+// -- Work Bot (admin) ---
+export const getBotStatus = () => api.get('/bot/status').then(r => r.data);
+export const startBot = (ticketId) => api.post('/bot/start', { ticketId }).then(r => r.data);
+export const stopBot = () => api.post('/bot/stop').then(r => r.data);
+
 export default api;

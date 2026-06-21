@@ -15,6 +15,8 @@ import authRouter from './routes/auth';
 import statsRouter from './routes/stats';
 import usersRouter from './routes/users';
 import notificationsRouter from './routes/notifications';
+import botRouter from './routes/bot';
+import { initBot } from './bot';
 import errorHandler from './middleware/errorHandler';
 import { migrator } from './db/umzug';
 import { seed } from './db/seed';
@@ -48,6 +50,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/bot', botRouter);
 
 // 404 handler
 app.use((_req, res) => {
@@ -61,6 +64,7 @@ app.use(errorHandler);
 async function start() {
   await migrator.up(); // застосовує лише pending-міграції (вже застосовані пропускає)
   await seed(); // idempotent: сіє лише якщо users порожні
+  await initBot(); // переконатись, що бот-користувач існує (щоб фронт знав його id)
   const httpServer = http.createServer(app);
   initSocket(httpServer); // Socket.IO на тому ж сервері (presence у реальному часі)
   httpServer.listen(PORT, () => {

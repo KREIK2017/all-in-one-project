@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getProjects, createTicket, getUsers } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { User, Bug, Sparkles, Headphones, CheckCircle2 } from 'lucide-react';
+import { AssigneePicker } from '../components/ui/AssigneePicker';
 
 export const NewTicketPage = () => {
   const { user } = useAuth();
@@ -94,14 +95,12 @@ export const NewTicketPage = () => {
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 700 }}>
               <User size={14} /> Assignee
             </label>
-            <select name="assignee_id" className="glass-panel" style={{ width: '100%', padding: '12px', outline: 'none', color: 'var(--text-main)', appearance: 'none', border: '1px solid var(--accent-cyan)' }} value={form.assignee_id} onChange={handleChange}>
-              <option value="">Unassigned</option>
-              {team.map(u => (
-                <option key={u.id} value={u.id}>
-                  {u.name} {u.id === user.id ? '(Me)' : ''}
-                </option>
-              ))}
-            </select>
+            <AssigneePicker
+              users={team}
+              value={form.assignee_id}
+              onChange={(id) => setForm(prev => ({ ...prev, assignee_id: id }))}
+              currentUserId={user.id}
+            />
           </div>
           
           <div>

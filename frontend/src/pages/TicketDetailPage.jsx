@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, ArrowRight, User, FileText, AtSign, Bug, Sparkles, CheckCircle2, Headphones } from 'lucide-react';
-import { getTicket, addComment, updateTicket, deleteTicket, startTimer, addManualTime, getProjects, getUsers } from '../services/api';
+import { Clock, CheckCircle, ArrowRight, User, FileText, AtSign, Bug, Sparkles, CheckCircle2, Headphones, Bot } from 'lucide-react';
+import { getTicket, addComment, updateTicket, deleteTicket, startTimer, addManualTime, getProjects, getUsers, getBotStatus, startBot, stopBot } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export const TicketDetailPage = () => {
@@ -27,6 +27,7 @@ export const TicketDetailPage = () => {
   const [pendingAssignee, setPendingAssignee] = useState('');
   const [pendingProject, setPendingProject] = useState('');
   const [pendingType, setPendingType] = useState('');
+  const [botStatus, setBotStatus] = useState({ running: false, ticketId: null, botUserId: null });
 
   // Mention State
   const [showMentions, setShowMentions] = useState(false);
@@ -51,11 +52,22 @@ export const TicketDetailPage = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  useEffect(() => { 
-    fetchTicket(); 
+  useEffect(() => {
+    fetchTicket();
     getProjects().then(setProjects);
     getUsers().then(setUsers);
+    getBotStatus().then(setBotStatus).catch(() => {});
   }, [fetchTicket]);
+
+  const handleToggleBot = async () => {
+    try {
+      const isThis = botStatus.running && botStatus.ticketId === ticket.id;
+      const res = isThis ? await stopBot() : await startBot(ticket.id);
+      setBotStatus(res);
+    } catch (err) {
+      alert('Bot error: ' + (err.response?.data?.error || err.message));
+    }
+  };
 
   const handlePostUpdate = async () => {
     const hasComment = newComment.trim() !== '';
@@ -245,6 +257,9 @@ export const TicketDetailPage = () => {
   if (loading) return <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '96px' }}>Loading ticket...</div>;
   if (!ticket) return <div style={{ color: '#ef4444', textAlign: 'center', padding: '96px' }}>Ticket not found.</div>;
 
+  const isBotAssignee = !!botStatus.botUserId && Number(ticket.assignee_id) === botStatus.botUserId;
+  const isBotRunningHere = botStatus.running && botStatus.ticketId === ticket.id;
+
   const totalMinutes = activity.filter(a => (a.type === 'time_log' || a.TYPE === 'time_log')).reduce((acc, a) => {
     const text = a.content || a.CONTENT || '';
     const isRemoval = text.includes('removed');
@@ -309,6 +324,18 @@ export const TicketDetailPage = () => {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px', height: 'fit-content' }}>
+              {user?.role === 'admin' && botStatus.botUserId && (
+                <button
+                  className="btn btn-secondary"
+                  disabled={!isBotAssignee}
+                  style={{ padding: '6px 14px', fontSize: '0.85rem', borderColor: 'rgba(34,211,238,0.5)', color: isBotRunningHere ? '#22d3ee' : 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '6px', opacity: isBotAssignee ? 1 : 0.45, cursor: isBotAssignee ? 'pointer' : 'not-allowed' }}
+                  onClick={isBotAssignee ? handleToggleBot : undefined}
+                  title={isBotAssignee ? 'Бот працює над цим тікетом' : 'Признач Worker Bot виконавцем (Assignee), щоб запустити бота'}
+                >
+                  <Bot size={16} />
+                  {isBotAssignee ? (isBotRunningHere ? 'Stop Bot' : 'Start Bot') : 'Bot'}
+                </button>
+              )}
               <button
                 className="btn btn-secondary"
                 style={{ padding: '6px 16px', fontSize: '0.85rem' }}

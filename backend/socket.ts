@@ -9,10 +9,15 @@ const ALLOWED_MANUAL = ['online', 'away', 'dnd', 'invisible'];
 // userId -> { count активних сокетів, timer відкладеного offline }
 const presence = new Map<number, { count: number; timer?: NodeJS.Timeout }>();
 
+// Посилання на io, щоб інші модулі (напр. бот) могли транслювати події
+let ioRef: Server | null = null;
+export const getIO = (): Server | null => ioRef;
+
 export function initSocket(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
     cors: { origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true },
   });
+  ioRef = io;
 
   // Авторизація сокета по JWT (токен у handshake.auth.token)
   io.use((socket, next) => {
