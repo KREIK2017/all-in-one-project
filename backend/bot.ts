@@ -3,6 +3,7 @@ import usersRepo from './repositories/usersRepository';
 import { User, Ticket } from './models';
 import timeService from './services/timeService';
 import ticketsService from './services/ticketsService';
+import ticketsRepo from './repositories/ticketsRepository';
 import AppError from './utils/AppError';
 
 const TICK_MS = 15000; // як часто бот «працює»
@@ -85,8 +86,9 @@ export async function startBot(tid: number) {
   // Бот працює лише над тікетом, де він призначений виконавцем
   const ticket: any = await Ticket.findByPk(tid, { raw: true });
   if (!ticket) throw new AppError(404, 'Тікет не знайдено');
-  if (Number(ticket.assignee_id) !== botUserId) {
-    throw new AppError(400, 'Бот має бути призначений виконавцем (Assignee) цього тікета');
+  const assigneeIds = await ticketsRepo.getAssigneeIds(tid);
+  if (!assigneeIds.includes(botUserId as number)) {
+    throw new AppError(400, 'Бот має бути серед виконавців (Assignees) цього тікета');
   }
   ticketId = tid;
   running = true;

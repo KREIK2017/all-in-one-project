@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, ArrowRight, User, FileText, AtSign, Bug, Sparkles, CheckCircle2, Headphones, Bot } from 'lucide-react';
 import { getTicket, addComment, updateTicket, deleteTicket, startTimer, addManualTime, getProjects, getUsers, getBotStatus, startBot, stopBot } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Select, Dot } from '../components/ui/Select';
+import { MultiAssigneePicker } from '../components/ui/AssigneePicker';
 
 export const TicketDetailPage = () => {
   const { id } = useParams();
@@ -24,7 +26,7 @@ export const TicketDetailPage = () => {
   const [editBody, setEditBody] = useState('');
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
-  const [pendingAssignee, setPendingAssignee] = useState('');
+  const [pendingAssignees, setPendingAssignees] = useState([]);
   const [pendingProject, setPendingProject] = useState('');
   const [pendingType, setPendingType] = useState('');
   const [botStatus, setBotStatus] = useState({ running: false, ticketId: null, botUserId: null });
@@ -45,7 +47,7 @@ export const TicketDetailPage = () => {
         setPendingPriority(data.priority);
         setEditSubject(data.subject || data.SUBJECT || '');
         setEditBody(data.body || '');
-        setPendingAssignee(data.assignee_id || '');
+        setPendingAssignees((data.assignees || []).map(a => a.id));
         setPendingProject(data.project_id || '');
         setPendingType(data.ticket_type || 'Task');
       })
@@ -73,7 +75,8 @@ export const TicketDetailPage = () => {
     const hasComment = newComment.trim() !== '';
     const hasStatusChange = pendingStatus !== ticket.status;
     const hasPriorityChange = pendingPriority !== ticket.priority;
-    const hasAssigneeChange = pendingAssignee !== (ticket.assignee_id || '');
+    const currentAssigneeIds = (ticket.assignees || []).map(a => a.id);
+    const hasAssigneeChange = pendingAssignees.length !== currentAssigneeIds.length || pendingAssignees.some(aid => !currentAssigneeIds.includes(aid));
     const hasProjectChange = pendingProject !== ticket.project_id;
     const hasTypeChange = pendingType !== ticket.ticket_type;
     const hasSubjectChange = isEditing && editSubject !== (ticket.subject || ticket.SUBJECT);
@@ -87,7 +90,7 @@ export const TicketDetailPage = () => {
         await updateTicket(id, { 
           status: pendingStatus, 
           priority: pendingPriority,
-          assignee_id: pendingAssignee,
+          assignee_ids: pendingAssignees,
           project_id: pendingProject,
           ticket_type: pendingType,
           subject: hasSubjectChange ? editSubject : undefined,
@@ -117,9 +120,6 @@ export const TicketDetailPage = () => {
       alert('Помилка при видаленні: ' + (err.response?.data?.error || err.message));
     }
   };
-
-  const handleStatusChange = (e) => setPendingStatus(e.target.value);
-  const handlePriorityChange = (e) => setPendingPriority(e.target.value);
 
   const handleStartTimer = async () => {
     try {
@@ -257,8 +257,10 @@ export const TicketDetailPage = () => {
   if (loading) return <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '96px' }}>Loading ticket...</div>;
   if (!ticket) return <div style={{ color: '#ef4444', textAlign: 'center', padding: '96px' }}>Ticket not found.</div>;
 
-  const isBotAssignee = !!botStatus.botUserId && Number(ticket.assignee_id) === botStatus.botUserId;
+  const isBotAssignee = !!botStatus.botUserId && (ticket.assignees || []).some(a => a.id === botStatus.botUserId);
   const isBotRunningHere = botStatus.running && botStatus.ticketId === ticket.id;
+  const ticketAssigneeIds = (ticket.assignees || []).map(a => a.id);
+  const assigneesChanged = pendingAssignees.length !== ticketAssigneeIds.length || pendingAssignees.some(aid => !ticketAssigneeIds.includes(aid));
 
   const totalMinutes = activity.filter(a => (a.type === 'time_log' || a.TYPE === 'time_log')).reduce((acc, a) => {
     const text = a.content || a.CONTENT || '';
@@ -431,7 +433,10 @@ export const TicketDetailPage = () => {
 
                   {(item.type === 'reassign' || item.TYPE === 'reassign') && (
                     <div style={{ paddingTop: '10px', fontSize: '0.9rem', color: 'var(--text-main)' }}>
-                      <span style={{ fontWeight: 600 }}>{item.author_name || item.AUTHOR_NAME}</span> reassigned ticket to <span style={{ fontWeight: 600 }}>{users.find(u => u.id === parseInt(item.new_value || item.NEW_VALUE))?.name || 'someone'}</span>
+                      <span style={{ fontWeight: 600 }}>{item.author_name || item.AUTHOR_NAME}</span>{' '}
+                      {(item.new_value || item.NEW_VALUE)
+                        ? <>added <span style={{ fontWeight: 600 }}>{users.find(u => u.id === Number(item.new_value || item.NEW_VALUE))?.name || 'someone'}</span> as assignee</>
+                        : <>removed <span style={{ fontWeight: 600 }}>{users.find(u => u.id === Number(item.old_value || item.OLD_VALUE))?.name || 'someone'}</span> from assignees</>}
                       <span style={{ color: 'var(--text-muted)' }}> on {new Date(item.created_at || item.CREATED_AT).toLocaleString('en-US')}</span>
                     </div>
                   )}
@@ -533,9 +538,9 @@ export const TicketDetailPage = () => {
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
                 <button 
                   className="btn btn-primary" 
-                  style={{ padding: '10px 24px', opacity: (newComment.trim() || pendingStatus !== ticket.status || pendingPriority !== ticket.priority || pendingAssignee !== (ticket.assignee_id || '') || pendingProject !== ticket.project_id || (isEditing && (editSubject !== (ticket.subject || ticket.SUBJECT) || editBody !== ticket.body))) ? 1 : 0.6 }} 
-                  onClick={handlePostUpdate} 
-                  disabled={submitting || (!newComment.trim() && pendingStatus === ticket.status && pendingPriority === ticket.priority && pendingAssignee === (ticket.assignee_id || '') && pendingProject === ticket.project_id && (!isEditing || (editSubject === (ticket.subject || ticket.SUBJECT) && editBody === ticket.body)))}
+                  style={{ padding: '10px 24px', opacity: (newComment.trim() || pendingStatus !== ticket.status || pendingPriority !== ticket.priority || assigneesChanged || pendingProject !== ticket.project_id || (isEditing && (editSubject !== (ticket.subject || ticket.SUBJECT) || editBody !== ticket.body))) ? 1 : 0.6 }}
+                  onClick={handlePostUpdate}
+                  disabled={submitting || (!newComment.trim() && pendingStatus === ticket.status && pendingPriority === ticket.priority && !assigneesChanged && pendingProject === ticket.project_id && (!isEditing || (editSubject === (ticket.subject || ticket.SUBJECT) && editBody === ticket.body)))}
                 >
                   {submitting ? 'Updating...' : 'Post Update'}
                 </button>
@@ -550,26 +555,23 @@ export const TicketDetailPage = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 600 }}>Status</label>
-                <select className="glass-panel" style={{ width: '100%', padding: '10px', outline: 'none', color: 'var(--text-main)', appearance: 'none' }} value={pendingStatus} onChange={handleStatusChange}>
-                  <option value="NEW">New</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="CLOSED">Closed</option>
-                </select>
+                <Select value={pendingStatus} onChange={setPendingStatus} options={[
+                  { value: 'NEW', label: 'New', icon: <Dot color="#3b82f6" /> },
+                  { value: 'IN_PROGRESS', label: 'In Progress', icon: <Dot color="#f59e0b" /> },
+                  { value: 'COMPLETED', label: 'Completed', icon: <Dot color="#10b981" /> },
+                  { value: 'CLOSED', label: 'Closed', icon: <Dot color="#6b7280" /> },
+                ]} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 600 }}>Priority</label>
-                <select className="glass-panel" style={{ width: '100%', padding: '10px', outline: 'none', color: 'var(--text-main)', appearance: 'none' }} value={pendingPriority} onChange={handlePriorityChange}>
-                  <option value="NORMAL">Normal</option>
-                  <option value="HIGH">High</option>
-                </select>
+                <Select value={pendingPriority} onChange={setPendingPriority} options={[
+                  { value: 'NORMAL', label: 'Normal', icon: <Dot color="var(--text-dim)" /> },
+                  { value: 'HIGH', label: 'High', icon: <Dot color="#ef4444" /> },
+                ]} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 600 }}>Assignee</label>
-                <select className="glass-panel" style={{ width: '100%', padding: '10px', outline: 'none', color: 'var(--text-main)', appearance: 'none' }} value={pendingAssignee} onChange={(e) => setPendingAssignee(e.target.value)}>
-                  <option value="">Unassigned</option>
-                  {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-                </select>
+                <MultiAssigneePicker users={users} value={pendingAssignees} onChange={setPendingAssignees} currentUserId={user.id} />
               </div>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 600 }}>
@@ -579,19 +581,19 @@ export const TicketDetailPage = () => {
                   {pendingType === 'Task' && <CheckCircle2 size={14} style={{ color: 'var(--accent-cyan)' }} />}
                   Task Type
                 </label>
-                <select className="glass-panel" style={{ width: '100%', padding: '10px', outline: 'none', color: 'var(--text-main)', appearance: 'none' }} value={pendingType} onChange={(e) => setPendingType(e.target.value)}>
-                   <option value="Task">Task</option>
-                   <option value="Bug">Bug</option>
-                   <option value="Feature">Feature</option>
-                   <option value="Support">Support</option>
-                </select>
+                <Select value={pendingType} onChange={setPendingType} options={[
+                  { value: 'Task', label: 'Task', icon: <CheckCircle2 size={14} style={{ color: 'var(--accent-cyan)' }} /> },
+                  { value: 'Bug', label: 'Bug', icon: <Bug size={14} style={{ color: '#ef4444' }} /> },
+                  { value: 'Feature', label: 'Feature', icon: <Sparkles size={14} style={{ color: '#f59e0b' }} /> },
+                  { value: 'Support', label: 'Support', icon: <Headphones size={14} style={{ color: '#8e2de2' }} /> },
+                ]} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 600 }}>Project</label>
-                <select className="glass-panel" style={{ width: '100%', padding: '10px', outline: 'none', color: 'var(--text-main)', appearance: 'none' }} value={pendingProject} onChange={(e) => setPendingProject(e.target.value)}>
-                  <option value="">No Project</option>
-                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
+                <Select value={pendingProject} onChange={setPendingProject} placeholder="No Project" options={[
+                  { value: '', label: 'No Project' },
+                  ...projects.map(p => ({ value: p.id, label: p.name, icon: <Dot color={p.color} /> })),
+                ]} />
               </div>
             </div>
           </div>

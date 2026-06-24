@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { getProjects, createTicket, getUsers } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { User, Bug, Sparkles, Headphones, CheckCircle2 } from 'lucide-react';
-import { AssigneePicker } from '../components/ui/AssigneePicker';
+import { MultiAssigneePicker } from '../components/ui/AssigneePicker';
+import { Select, Dot } from '../components/ui/Select';
 
 export const NewTicketPage = () => {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ export const NewTicketPage = () => {
     status: 'NEW',
     priority: 'NORMAL',
     ticket_type: 'Task',
-    assignee_id: '',
+    assignee_ids: [],
     is_private: false,
   });
 
@@ -85,30 +86,36 @@ export const NewTicketPage = () => {
         }}>
           <div>
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 700 }}>Project</label>
-            <select name="project_id" className="glass-panel" style={{ width: '100%', padding: '12px', outline: 'none', color: 'var(--text-main)', appearance: 'none', border: '1px solid var(--border-light)' }} value={form.project_id} onChange={handleChange}>
-              <option value="">No Project (General)</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
+            <Select
+              value={form.project_id}
+              onChange={(v) => setForm(prev => ({ ...prev, project_id: v }))}
+              placeholder="No Project (General)"
+              options={[{ value: '', label: 'No Project (General)' }, ...projects.map(p => ({ value: p.id, label: p.name, icon: <Dot color={p.color} /> }))]}
+            />
           </div>
 
           <div>
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 700 }}>
               <User size={14} /> Assignee
             </label>
-            <AssigneePicker
+            <MultiAssigneePicker
               users={team}
-              value={form.assignee_id}
-              onChange={(id) => setForm(prev => ({ ...prev, assignee_id: id }))}
+              value={form.assignee_ids}
+              onChange={(ids) => setForm(prev => ({ ...prev, assignee_ids: ids }))}
               currentUserId={user.id}
             />
           </div>
           
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 700 }}>Priority</label>
-            <select name="priority" className="glass-panel" style={{ width: '100%', padding: '12px', outline: 'none', color: 'var(--text-main)', appearance: 'none', border: '1px solid var(--border-light)' }} value={form.priority} onChange={handleChange}>
-              <option value="NORMAL">Normal</option>
-              <option value="HIGH">High Priority</option>
-            </select>
+            <Select
+              value={form.priority}
+              onChange={(v) => setForm(prev => ({ ...prev, priority: v }))}
+              options={[
+                { value: 'NORMAL', label: 'Normal', icon: <Dot color="var(--text-dim)" /> },
+                { value: 'HIGH', label: 'High Priority', icon: <Dot color="#ef4444" /> },
+              ]}
+            />
           </div>
 
           <div>
@@ -119,12 +126,16 @@ export const NewTicketPage = () => {
               {form.ticket_type === 'Task' && <CheckCircle2 size={14} style={{ color: 'var(--accent-cyan)' }} />}
               Task Type
             </label>
-            <select name="ticket_type" className="glass-panel" style={{ width: '100%', padding: '12px', outline: 'none', color: 'var(--text-main)', appearance: 'none', border: '1px solid var(--border-light)' }} value={form.ticket_type} onChange={handleChange}>
-              <option value="Task">Task</option>
-              <option value="Bug">Bug Report</option>
-              <option value="Feature">Feature Request</option>
-              <option value="Support">Support Ticket</option>
-            </select>
+            <Select
+              value={form.ticket_type}
+              onChange={(v) => setForm(prev => ({ ...prev, ticket_type: v }))}
+              options={[
+                { value: 'Task', label: 'Task', icon: <CheckCircle2 size={14} style={{ color: 'var(--accent-cyan)' }} /> },
+                { value: 'Bug', label: 'Bug Report', icon: <Bug size={14} style={{ color: '#ef4444' }} /> },
+                { value: 'Feature', label: 'Feature Request', icon: <Sparkles size={14} style={{ color: '#f59e0b' }} /> },
+                { value: 'Support', label: 'Support Ticket', icon: <Headphones size={14} style={{ color: '#8e2de2' }} /> },
+              ]}
+            />
           </div>
         </div>
 

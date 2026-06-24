@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { User, ChevronDown, Check } from 'lucide-react';
+import { DropdownMenu } from './Select';
 
 const Avatar = ({ u, size = 24 }) => (
   <div style={{
@@ -38,20 +39,16 @@ const Row = ({ u, isSelected, currentUserId, onClick }) => (
 // Кастомний пікер виконавця з аватарами (заміна нативного <select>)
 export const AssigneePicker = ({ users = [], value, onChange, currentUserId }) => {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
   const selected = users.find((u) => String(u.id) === String(value));
-
-  useEffect(() => {
-    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, []);
 
   const choose = (id) => { onChange(id); setOpen(false); };
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <>
       <button
+        ref={btnRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="glass-panel"
@@ -65,13 +62,68 @@ export const AssigneePicker = ({ users = [], value, onChange, currentUserId }) =
       </button>
 
       {open && (
-        <div className="glass-panel" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 50, maxHeight: 240, overflowY: 'auto', padding: '6px', border: '1px solid var(--border-light)', background: '#1a1c2c', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
+        <DropdownMenu anchorRef={btnRef} menuRef={menuRef} onClose={() => setOpen(false)}>
           <Row u={null} isSelected={!value} currentUserId={currentUserId} onClick={() => choose('')} />
           {users.map((u) => (
             <Row key={u.id} u={u} isSelected={String(u.id) === String(value)} currentUserId={currentUserId} onClick={() => choose(u.id)} />
           ))}
-        </div>
+        </DropdownMenu>
       )}
-    </div>
+    </>
+  );
+};
+
+// Мультиселект виконавців (кілька людей на тікеті). value: масив id, onChange(масив id)
+export const MultiAssigneePicker = ({ users = [], value = [], onChange, currentUserId }) => {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
+  const selectedIds = (value || []).map(String);
+  const selectedUsers = users.filter((u) => selectedIds.includes(String(u.id)));
+
+  const toggle = (id) => {
+    const sid = String(id);
+    const next = selectedIds.includes(sid) ? value.filter((v) => String(v) !== sid) : [...value, id];
+    onChange(next);
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="glass-panel"
+        style={{ width: '100%', padding: '8px 12px', minHeight: 44, display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', border: '1px solid var(--accent-cyan)', background: 'rgba(0,0,0,0.2)' }}
+      >
+        {selectedUsers.length === 0 ? (
+          <Placeholder />
+        ) : (
+          <div style={{ display: 'flex' }}>
+            {selectedUsers.slice(0, 4).map((u, i) => (
+              <div key={u.id} style={{ marginLeft: i ? -8 : 0, border: '2px solid var(--bg-panel)', borderRadius: '50%' }}>
+                <Avatar u={u} />
+              </div>
+            ))}
+          </div>
+        )}
+        <span style={{ flex: 1, textAlign: 'left', color: selectedUsers.length ? 'var(--text-main)' : 'var(--text-muted)' }}>
+          {selectedUsers.length === 0
+            ? 'Unassigned'
+            : selectedUsers.length === 1
+              ? selectedUsers[0].name
+              : `${selectedUsers.length} assignees`}
+        </span>
+        <ChevronDown size={16} color="var(--text-muted)" />
+      </button>
+
+      {open && (
+        <DropdownMenu anchorRef={btnRef} menuRef={menuRef} onClose={() => setOpen(false)}>
+          {users.map((u) => (
+            <Row key={u.id} u={u} isSelected={selectedIds.includes(String(u.id))} currentUserId={currentUserId} onClick={() => toggle(u.id)} />
+          ))}
+        </DropdownMenu>
+      )}
+    </>
   );
 };

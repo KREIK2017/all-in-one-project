@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import sequelize from '../config/sequelize';
-import { User, Project, Ticket } from '../models';
+import { User, Project, Ticket, TicketAssignee } from '../models';
 
 // Демо-дані для свіжої БД. Idempotent: якщо користувачі вже є — нічого не робить.
 export async function seed() {
@@ -28,15 +28,15 @@ export async function seed() {
   const p1: any = await Project.create({ name: 'Website Redesign', client_name: 'ACME Inc', color: '#8b5cf6' });
   await Project.create({ name: 'Internal Tools', color: '#00f2fe' });
 
-  await Ticket.create({
+  const ticket: any = await Ticket.create({
     subject: 'Set up CI pipeline',
     project_id: p1.id,
     created_by: admin.id,
-    assignee_id: user.id,
     status: 'IN_PROGRESS',
     priority: 'HIGH',
     ticket_type: 'Task',
   });
+  await TicketAssignee.create({ ticket_id: ticket.id, user_id: user.id });
 
   console.log('🌱 Seed: створено демо-дані. Вхід: admin@demo.com / demo1234');
 }

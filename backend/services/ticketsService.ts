@@ -13,20 +13,24 @@ interface CreateTicketData {
   priority?: string;
   ticket_type?: string;
   created_by: number;
-  assignee_id?: number | null;
+  assignee_ids?: (number | string)[];
   is_private?: boolean | number;
 }
 
 interface UpdateTicketData {
   status?: string;
   priority?: string;
-  assignee_id?: number | string | '';
+  assignee_ids?: (number | string)[];
   subject?: string;
   body?: string;
   project_id?: number | string | '';
   ticket_type?: string;
   user_id?: number;
 }
+
+// Унікальні додатні цілі id (з масиву рядків/чисел)
+const uniqueIds = (arr?: (number | string)[]): number[] =>
+  [...new Set((arr || []).map(Number).filter((n) => Number.isInteger(n) && n > 0))];
 
 // --- приватні помічники (модульного рівня) ---
 
@@ -84,7 +88,13 @@ export default {
 
   async create(data: CreateTicketData) {
     const id = await repo.create(data);
+    const assigneeIds = uniqueIds(data.assignee_ids);
+    await repo.setAssignees(id, assigneeIds);
     await repo.addActivity({ ticketId: id, userId: data.created_by, type: 'status_change', newValue: 'NEW' });
+    // сповістити призначених (окрім автора)
+    for (const uid of assigneeIds) {
+      if (uid !== data.created_by) await notifyAssignment(id, data.created_by, uid);
+    }
     return id;
   },
 
@@ -104,13 +114,10 @@ export default {
     const current = await repo.findRaw(id);
     if (!current) throw new AppError(404, 'Not found');
 
-    // assignee_id / project_id йдуть БЕЗ COALESCE (їх можна обнулити),
-    // тому undefined/'' приводимо до null, щоб mysql2 не впав і щоб "зняти" значення:
-    // undefined = поле не передали -> лишаємо поточне; '' = явно «зняти» -> null
+    // undefined = поле не передали -> лишаємо поточне; '' = явно «зняти» -> null (для project_id)
     const fields = {
       status: data.status ?? null,
       priority: data.priority ?? null,
-      assignee_id: data.assignee_id === undefined ? current.assignee_id : data.assignee_id === '' ? null : data.assignee_id,
       subject: data.subject ?? null,
       body: data.body ?? null,
       project_id: data.project_id === undefined ? current.project_id : data.project_id === '' ? null : data.project_id,
@@ -122,16 +129,27 @@ export default {
     const changes: { type: string; old: any; new: any }[] = [];
     if (data.status && data.status !== current.status) changes.push({ type: 'status_change', old: current.status, new: data.status });
     if (data.priority && data.priority !== current.priority) changes.push({ type: 'priority_change', old: current.priority, new: data.priority });
-    if (data.assignee_id !== undefined && (fields.assignee_id || 0) !== (current.assignee_id || 0)) {
-      changes.push({ type: 'reassign', old: current.assignee_id, new: fields.assignee_id });
-    }
     if (data.subject && data.subject !== current.subject) changes.push({ type: 'subject_change', old: current.subject, new: data.subject });
     if (data.ticket_type && data.ticket_type !== current.ticket_type) changes.push({ type: 'type_change', old: current.ticket_type, new: data.ticket_type });
-
     for (const c of changes) {
       await repo.addActivity({ ticketId: id, userId, type: c.type, oldValue: c.old, newValue: c.new });
-      if (c.type === 'reassign' && c.new && Number(c.new) !== Number(userId || 0)) {
-        await notifyAssignment(id, userId, c.new);
+    }
+
+    // Виконавці (junction): обчислюємо доданих/прибраних
+    if (data.assignee_ids !== undefined) {
+      const newIds = uniqueIds(data.assignee_ids);
+      const currentIds = await repo.getAssigneeIds(id);
+      const added = newIds.filter((x) => !currentIds.includes(x));
+      const removed = currentIds.filter((x) => !newIds.includes(x));
+      if (added.length || removed.length) {
+        await repo.setAssignees(id, newIds);
+        for (const uid of added) {
+          await repo.addActivity({ ticketId: id, userId, type: 'reassign', newValue: uid });
+          if (uid !== Number(userId)) await notifyAssignment(id, userId, uid);
+        }
+        for (const uid of removed) {
+          await repo.addActivity({ ticketId: id, userId, type: 'reassign', oldValue: uid });
+        }
       }
     }
 

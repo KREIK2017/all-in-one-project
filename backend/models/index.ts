@@ -46,7 +46,6 @@ export const Ticket = sequelize.define(
     priority: { type: DataTypes.ENUM('NORMAL', 'HIGH'), defaultValue: 'NORMAL' },
     ticket_type: { type: DataTypes.ENUM('Feature', 'Bug', 'Task', 'Support'), defaultValue: 'Task' },
     created_by: { type: DataTypes.INTEGER, allowNull: false },
-    assignee_id: { type: DataTypes.INTEGER, allowNull: true },
     is_private: { type: DataTypes.TINYINT, defaultValue: 0 },
     created_at: { type: DataTypes.DATE },
     updated_at: { type: DataTypes.DATE },
@@ -110,6 +109,16 @@ export const ActiveTimer = sequelize.define(
     started_at: { type: DataTypes.DATE, allowNull: false },
   },
   { tableName: 'active_timers' }
+);
+
+export const TicketAssignee = sequelize.define(
+  'TicketAssignee',
+  {
+    ticket_id: { type: DataTypes.INTEGER, primaryKey: true },
+    user_id: { type: DataTypes.INTEGER, primaryKey: true },
+    created_at: { type: DataTypes.DATE },
+  },
+  { tableName: 'ticket_assignees' }
 );
 
 export const Notification = sequelize.define(

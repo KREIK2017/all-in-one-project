@@ -10,6 +10,8 @@ vi.mock('../repositories/ticketsRepository', () => ({
     create: vi.fn(),
     update: vi.fn(),
     addActivity: vi.fn(),
+    setAssignees: vi.fn(),
+    getAssigneeIds: vi.fn(),
   },
 }));
 vi.mock('../repositories/usersRepository', () => ({ default: { findById: vi.fn(), findByMention: vi.fn() } }));

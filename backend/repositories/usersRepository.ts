@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import sequelize from '../config/sequelize';
-import { User, Ticket, TimeEntry, Activity, Notification } from '../models';
+import { User, Ticket, TimeEntry, Activity, Notification, TicketAssignee } from '../models';
 
 interface ProfileFields {
   name: string;
@@ -90,7 +90,7 @@ export default {
   },
 
   async getUserStats(id: number | string) {
-    const tickets = await Ticket.count({ where: { assignee_id: id } });
+    const tickets = await TicketAssignee.count({ where: { user_id: id } });
     const projects = await TimeEntry.count({ where: { user_id: id }, distinct: true, col: 'project_id' });
     const minutes = (await TimeEntry.sum('duration_minutes', { where: { user_id: id } })) || 0;
     return { tickets, projects, minutes };

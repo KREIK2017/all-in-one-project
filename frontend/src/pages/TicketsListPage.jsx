@@ -127,38 +127,21 @@ export const TicketsListPage = () => {
                     <td>{getStatusBadge(ticket.status)}</td>
                     <td><span className={ticket.priority === 'HIGH' ? 'priority-high' : 'priority-normal'}>{ticket.priority}</span></td>
                     <td>
-                      {ticket.assignee_id ? (
+                      {(ticket.assignees && ticket.assignees.length > 0) ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ position: 'relative', width: '28px', height: '28px' }}>
-                            <div style={{ 
-                              width: '100%', 
-                              height: '100%', 
-                              borderRadius: '50%', 
-                              background: ticket.assignee_avatar_color || 'var(--accent-cyan)', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center', 
-                              fontSize: '0.75rem', 
-                              fontWeight: 700, 
-                              color: '#fff',
-                              overflow: 'hidden'
-                            }}>
-                              {ticket.assignee_avatar_url ? (
-                                <img src={ticket.assignee_avatar_url} alt="A" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              ) : (ticket.assignee_name || 'U').charAt(0)}
-                            </div>
-                            <div style={{ 
-                              position: 'absolute', 
-                              bottom: '-1px', 
-                              right: '-1px', 
-                              width: '10px', 
-                              height: '10px', 
-                              borderRadius: '50%', 
-                              background: ticket.assignee_status === 'online' ? '#10b981' : ticket.assignee_status === 'away' ? '#f59e0b' : ticket.assignee_status === 'dnd' ? '#ef4444' : '#6b7280',
-                              border: '2px solid var(--bg-panel)'
-                            }}></div>
+                          <div style={{ display: 'flex' }}>
+                            {ticket.assignees.slice(0, 4).map((a, i) => (
+                              <div key={a.id} title={a.name} style={{ position: 'relative', width: '28px', height: '28px', marginLeft: i ? -10 : 0 }}>
+                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: a.avatar_color || 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#fff', overflow: 'hidden', border: '2px solid var(--bg-panel)' }}>
+                                  {a.avatar_url ? <img src={a.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (a.name || 'U').charAt(0)}
+                                </div>
+                                <div style={{ position: 'absolute', bottom: '-1px', right: '-1px', width: '10px', height: '10px', borderRadius: '50%', background: a.status === 'online' ? '#10b981' : a.status === 'away' ? '#f59e0b' : a.status === 'dnd' ? '#ef4444' : '#6b7280', border: '2px solid var(--bg-panel)' }}></div>
+                              </div>
+                            ))}
                           </div>
-                          <span style={{ fontSize: '0.85rem' }}>{ticket.assignee_name}</span>
+                          <span style={{ fontSize: '0.85rem' }}>
+                            {ticket.assignees.length === 1 ? ticket.assignees[0].name : `${ticket.assignees.length} assignees`}
+                          </span>
                         </div>
                       ) : (
                         <span style={{ color: 'var(--text-dim)' }}>Unassigned</span>
