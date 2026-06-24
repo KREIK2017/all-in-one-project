@@ -79,9 +79,15 @@ export default {
     return repo.findAll({ userId: user.id, role: user.role, projectId });
   },
 
-  async getOne(id: number | string) {
+  async getOne(id: number | string, requester?: { id: number; role: string }) {
     const ticket = await repo.findById(id);
     if (!ticket) throw new AppError(404, 'Ticket not found');
+    // Приватний тікет видно лише автору або виконавцям (404, щоб не розкривати існування)
+    if (ticket.is_private) {
+      const isCreator = ticket.created_by === requester?.id;
+      const isAssignee = (ticket.assignees || []).some((a: any) => a.id === requester?.id);
+      if (!isCreator && !isAssignee) throw new AppError(404, 'Ticket not found');
+    }
     const activity = await repo.findActivity(id);
     return { ...ticket, activity };
   },

@@ -11,6 +11,8 @@ Internal tool for IT companies that combines ticket management, time tracking, a
 - **Billing Time** — weekly report table showing who worked how long on which project
 - **Projects** — project list with time tracking per client
 - **Dashboard** — real-time stats and charts from `/api/stats`
+- **Presence** — live online/away/offline status for colleagues via Socket.IO
+- **Work bot** — an admin-controlled bot that simulates work on a ticket (time logs, comments, status changes)
 
 ## Tech Stack
 
@@ -21,13 +23,15 @@ Internal tool for IT companies that combines ticket management, time tracking, a
 
 **Backend**
 - Node.js + Express 5 + TypeScript
-- Sequelize ORM — MariaDB
-- JWT authentication
+- Sequelize ORM (umzug migrations) — MariaDB
+- Socket.IO — real-time presence
+- JWT auth, helmet, login rate limiting
 - Layered architecture: `route → controller → service → repository → DB`
 
 **Infrastructure**
 - MariaDB 10.11 in Docker
 - Adminer for DB management
+- GitHub Actions CI (typecheck + Vitest tests + frontend lint/build)
 
 ## Getting Started
 
@@ -73,7 +77,7 @@ npm run db:migrate:status   # list pending migrations
 npm run db:seed             # insert demo data (only if DB is empty)
 ```
 
-**Tables:** `users`, `projects`, `tickets`, `activity`, `time_entries`, `active_timers`, `notifications`
+**Tables:** `users`, `projects`, `tickets`, `ticket_assignees`, `activity`, `time_entries`, `active_timers`, `notifications`
 
 ## Project Structure
 
@@ -103,15 +107,32 @@ all-in-one-project/
     ├── config/
     ├── middleware/
     ├── utils/
-    └── tests/          → Vitest unit tests
+    ├── tests/          → Vitest unit tests
+    ├── socket.ts       → Socket.IO (real-time presence)
+    └── bot.ts          → work-simulating bot
 ```
 
 ## Features
 
 - Full ticket CRUD with cascading delete (activity + time entries preserved)
-- Activity feed: comments, status changes, time logs
+- **Multiple assignees per ticket** (many-to-many) with avatar pickers
+- **Private tickets** — visible only to the creator and assignees
+- Activity feed: comments, status changes, time logs, assignee changes
 - @mentions → notifications + email
+- **Real-time presence** (online / away / offline) via Socket.IO
+- **Work-simulating bot** — admin-controlled, runs on a specific ticket
 - Server-side timer with `TIMESTAMPDIFF` (timezone-safe), atomic transactions
 - Billing Time aggregation by project/day
-- JWT auth with roles (admin/user)
+- JWT auth with roles (admin/user), `helmet` + login rate limiting
 - User profile: avatar upload/delete, handle, status, password change
+- Accessible custom dropdowns (keyboard navigation + ARIA)
+
+## Testing
+
+```bash
+cd backend
+npm test            # Vitest unit tests (services, mocked repositories)
+npm run typecheck   # tsc --noEmit
+```
+
+CI runs these (plus frontend lint + build) on every push — see the badge above.

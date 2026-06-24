@@ -58,6 +58,9 @@ export default {
       conditions.push('(t.created_by = ? OR t.id IN (SELECT ticket_id FROM ticket_assignees WHERE user_id = ?))');
       replacements.push(userId, userId);
     }
+    // Приватні тікети видно лише автору або виконавцям (навіть адміну)
+    conditions.push('(t.is_private = 0 OR t.created_by = ? OR t.id IN (SELECT ticket_id FROM ticket_assignees WHERE user_id = ?))');
+    replacements.push(userId, userId);
     if (projectId) {
       conditions.push('t.project_id = ?');
       replacements.push(projectId);

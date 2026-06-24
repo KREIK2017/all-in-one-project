@@ -10,7 +10,7 @@ export const list = asyncHandler(async (req, res) => {
 });
 
 export const getOne = asyncHandler(async (req, res) => {
-  res.json(await ticketsService.getOne(String(req.params.id)));
+  res.json(await ticketsService.getOne(String(req.params.id), req.user));
 });
 
 export const create = asyncHandler(async (req, res) => {
